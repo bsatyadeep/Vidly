@@ -1,0 +1,103 @@
+﻿@model IEnumerable<Vidly.Models.Movie>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<br/>
+<div class="row">
+    <div class="btn-group btn-group-sm">
+        <a href="@Url.Action("Create")" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-plus-sign"></i> New Movie</a>
+    </div>
+    <br/>
+    <div class="panel">
+        <table id="movies" class="table table-condensed table-responsive table-striped table-bordered">
+            <thead>
+            <tr>
+                <th>Movie</th>
+                <th>Genre</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    @*<div class="panel">
+        <table class="table table-condensed table-responsive table-striped table-bordered">
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.Name)</th>
+                <th>@Html.DisplayNameFor(model => model.Genre.Name)</th>
+            </tr>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(item.Name, "Edit", new { id = item.Id }) </td>
+                    <td>@item.Genre.Name </td>
+                </tr>
+            }
+        </table>
+    </div>*@
+</div>
+@section scripts
+{
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function() {
+            var movieTable = $('#movies').DataTable({
+                ajax: {
+                    url: '/api/movies',
+                    dataSrc:''
+                },
+                columns: [
+                    {
+                        data: 'name',
+                        render:function(data, type, movie) {
+                            return '<a href="/movies/Edit/' + movie.id + '">' + movie.name + '</a>';
+                        }
+                    },
+                    {
+                        data: 'genre.name'
+                    },
+                    {
+                        data: 'id',
+                        render:function(data, type, movie) {
+                            return '<button data-movie-id=' + movie.id + ' class="btn-danger btn-xs js-delete"><i class="glyphicon glyphicon-remove-circle"></i> Delete</button>';
+                        }
+                    }
+                ]
+            });
+            $('#movies').on('click', '.js-delete', function ()
+            {
+                var button = $(this);
+                bootbox.confirm({
+                    message: 'Are you Sure want to delete this movie?',
+                    buttons: {
+                        confirm: {
+                            label: 'Delete',
+                            className: 'btn btn-success'
+                        },
+                        cancel: {
+                            label: 'Cancel',
+                            className: 'btn btn-danger'
+                        }
+                    },
+                    callback: function (result)
+                    {
+                        if (result)
+                        {
+                            $.ajax({
+                                url: '/api/movies/' + button.attr('data-movie-id'),
+                                method: 'DELETE',
+                                success: function ()
+                                {
+                                    movieTable.row(button.parents('tr')).remove().draw();
+                                    //button.parents('tr').remove();
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        });        
+    </script>
+}

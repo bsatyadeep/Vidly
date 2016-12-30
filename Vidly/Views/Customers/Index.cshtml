@@ -1,0 +1,146 @@
+﻿@*@model IEnumerable<Vidly.Models.Customer>*@
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<br />
+<div class="row">
+    <div class="btn-group btn-group-sm">
+        <a href="@Url.Action("Create")" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-plus-sign"></i> New Customer</a>
+    </div>
+    <br/>
+    <div class="panel">
+        <table id="customers" class="table table-condensed table-striped table-responsive">
+            <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Membership Type</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    @*<div class="panel">
+            <table id="customers" class="table table-condensed table-striped table-responsive">
+                <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.BirthDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.MembershipType.DiscountRate)</th>
+                    <th>@Html.DisplayNameFor(model => model.MembershipType.Name)</th>
+                    <th>Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.ActionLink(item.Name, "Edit", new {id = item.Id})</td>
+                            <td>
+                            @{
+                                var dateofBirth = item.BirthDate != null ? string.Format("{0:d}", item.BirthDate) : string.Empty;
+                            }
+                            @dateofBirth
+                        </td>
+                        <td>@item.MembershipType.DiscountRate%</td>
+                            <td>@item.MembershipType.Name</td>
+                            <td><button data-customer-id="@item.Id" class="btn-danger btn-xs js-delete"><i class="glyphicon glyphicon-remove-circle"></i> Delete</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>*@
+</div>
+@*<div id="deleteCustomerModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    Are you sure want to delete this customer?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-remove-circle"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>*@
+@section scripts
+{
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function ()
+        {
+            //$('#customers').DataTable();
+            var customerTable = $('#customers').DataTable({
+                ajax: {
+                    url: '/api/customers',
+                    dataSrc: ''
+                },
+                columns: [
+                    {
+                        data: 'name',
+                        render: function (data, type, customer)
+                        {
+                            return '<a href="/Customers/Edit/' + customer.id + '">' + customer.name + '</a>';
+                        }
+                    },
+                    {
+                        data: 'membershipType.name',
+
+                    },
+                    {
+                        data: 'id',
+                        render: function (data,type,customer)
+                        {
+                            return '<button data-customer-id=' + customer.id + ' class="btn-danger btn-xs js-delete"><i class="glyphicon glyphicon-remove-circle"></i> Delete</button>';
+                        }
+                    }
+                ]
+            });
+            //$('#customers .js-delete').on('click', function () {
+            $('#customers').on('click', '.js-delete', function ()
+            {
+                var button = $(this);
+                bootbox.confirm({
+                    message: 'Are you sure want to delete this customer?',
+                    //buttons: {
+                    //    confirm: {
+                    //        label: '<i class="glyphicon glyphicon-remove-circle"></i> Delete',
+                    //        className: 'btn btn-success btn-xs'
+                    //        //label: 'Yes',
+                    //        //className: 'btn btn-success'
+                    //    },
+                    //    cancel: {
+                    //        label: 'No',
+                    //        className: 'btn btn-danger'
+                    //    }
+                    //},
+                    callback: function (result)
+                    {
+                        if (result)
+                        {
+                            $.ajax({
+                                url: '/api/customers/' + button.attr('data-customer-id'),
+                                method: 'DELETE',
+                                success: function () {
+                                    customerTable.row(button.parents('tr')).remove().draw();
+                                    //button.parents('tr').remove();
+                                }
+                            });
+                        }
+                    }
+                });
+                //if (confirm("Are you sure want to delete this customer?")) {
+                //    $.ajax({
+                //        url: '/api/customers/' + button.attr('data-customer-id'),
+                //        method: 'DELETE',
+                //        success:function() {
+                //            button.parents('tr').remove();
+                //        }
+                //    });
+                //}
+            });
+        });
+    </script>
+}
